@@ -1,0 +1,1535 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Черга — Telegram CRM-бот для малого бізнесу в Україні: записи клієнтів за 30 секунд і автоматичні нагадування за 2 години до прийому."
+    />
+    <title>Черга — Telegram CRM-бот для записів і нагадувань</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geologica:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --bg: #071126;
+        --panel: rgba(255, 255, 255, 0.06);
+        --panel-2: rgba(255, 255, 255, 0.08);
+        --stroke: rgba(255, 255, 255, 0.12);
+        --text: rgba(255, 255, 255, 0.92);
+        --muted: rgba(255, 255, 255, 0.72);
+        --muted-2: rgba(255, 255, 255, 0.58);
+        --accent: #33d17a;
+        --accent-2: #22c55e;
+        --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+        --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.25);
+        --radius: 18px;
+        --radius-sm: 14px;
+        --max: 1120px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(900px 420px at 20% -10%, rgba(51, 209, 122, 0.22), transparent 60%),
+          radial-gradient(700px 420px at 110% 10%, rgba(59, 130, 246, 0.18), transparent 55%),
+          radial-gradient(900px 520px at 40% 115%, rgba(34, 197, 94, 0.12), transparent 55%),
+          linear-gradient(180deg, #050b18 0%, #071126 35%, #060a14 100%);
+        overflow-x: hidden;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .container {
+        width: min(var(--max), calc(100% - 40px));
+        margin-inline: auto;
+      }
+
+      .skip {
+        position: absolute;
+        left: -999px;
+        top: 0;
+        padding: 10px 14px;
+        background: #000;
+        border-radius: 10px;
+        z-index: 9999;
+      }
+      .skip:focus {
+        left: 10px;
+        top: 10px;
+        outline: 2px solid var(--accent);
+      }
+
+      /* Header */
+      .header {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        border-bottom: 1px solid transparent;
+      }
+
+      .header::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(7, 17, 38, 0.62);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        opacity: 0;
+        transition: opacity 220ms ease;
+      }
+
+      .header.is-scrolled::before {
+        opacity: 1;
+      }
+
+      .nav {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 0;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 180px;
+      }
+
+      .logo {
+        width: 34px;
+        height: 34px;
+        border-radius: 12px;
+        background:
+          radial-gradient(18px 18px at 30% 30%, rgba(255, 255, 255, 0.45), transparent 60%),
+          linear-gradient(145deg, rgba(51, 209, 122, 1), rgba(59, 130, 246, 0.8));
+        box-shadow: 0 12px 26px rgba(51, 209, 122, 0.12);
+        position: relative;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+      }
+
+      .logo::after {
+        content: "";
+        position: absolute;
+        inset: 7px 9px;
+        border-radius: 9px;
+        background: rgba(7, 17, 38, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+      }
+
+      .brand-name {
+        font-family: Geologica, Inter, system-ui, sans-serif;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+      }
+
+      .nav-links {
+        display: none;
+        gap: 18px;
+        color: var(--muted);
+        font-weight: 500;
+      }
+
+      .nav-links a {
+        padding: 8px 10px;
+        border-radius: 12px;
+        transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+      }
+
+      .nav-links a:hover {
+        background: rgba(255, 255, 255, 0.06);
+        color: rgba(255, 255, 255, 0.92);
+        transform: translateY(-1px);
+      }
+
+      .actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        font-weight: 600;
+        letter-spacing: 0.1px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text);
+        cursor: pointer;
+        transition:
+          transform 160ms ease,
+          box-shadow 160ms ease,
+          background 160ms ease,
+          border-color 160ms ease;
+        will-change: transform;
+        user-select: none;
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25);
+        border-color: rgba(255, 255, 255, 0.18);
+      }
+
+      .btn:active {
+        transform: translateY(0);
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, rgba(51, 209, 122, 1), rgba(34, 197, 94, 0.86));
+        color: #04120b;
+        border: 1px solid rgba(51, 209, 122, 0.45);
+        box-shadow: 0 18px 46px rgba(34, 197, 94, 0.18);
+      }
+
+      .btn-primary:hover {
+        box-shadow: 0 24px 60px rgba(34, 197, 94, 0.25);
+      }
+
+      .btn-primary .spark {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: rgba(7, 17, 38, 0.32);
+        box-shadow: 0 0 0 6px rgba(7, 17, 38, 0.09);
+      }
+
+      /* Hero */
+      .hero {
+        padding: 44px 0 22px;
+      }
+
+      .hero-grid {
+        display: grid;
+        gap: 26px;
+        align-items: center;
+      }
+
+      .kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: var(--muted);
+        width: fit-content;
+      }
+
+      .kicker b {
+        color: rgba(255, 255, 255, 0.92);
+      }
+
+      .kicker .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 0 6px rgba(51, 209, 122, 0.12);
+      }
+
+      h1 {
+        font-family: Geologica, Inter, system-ui, sans-serif;
+        font-weight: 700;
+        font-size: clamp(30px, 7vw, 54px);
+        line-height: 1.06;
+        margin: 14px 0 12px;
+        letter-spacing: -0.6px;
+      }
+
+      .lead {
+        font-size: 16px;
+        line-height: 1.6;
+        color: var(--muted);
+        margin: 0 0 18px;
+      }
+
+      .hero-cta {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .fineprint {
+        color: var(--muted-2);
+        font-size: 13px;
+        margin-top: 10px;
+      }
+
+      .fineprint .sep {
+        display: inline-block;
+        margin: 0 6px;
+        opacity: 0.55;
+      }
+
+      .trust {
+        margin-top: 22px;
+        display: grid;
+        gap: 10px;
+        grid-template-columns: 1fr;
+      }
+
+      .pill {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
+        border-radius: var(--radius-sm);
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .pill .icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 12px;
+        background: rgba(51, 209, 122, 0.12);
+        border: 1px solid rgba(51, 209, 122, 0.22);
+        display: grid;
+        place-items: center;
+        color: rgba(255, 255, 255, 0.9);
+      }
+
+      .pill b {
+        display: block;
+        font-weight: 700;
+      }
+
+      .pill span {
+        display: block;
+        color: var(--muted);
+        font-size: 13px;
+        margin-top: 2px;
+      }
+
+      .phone-wrap {
+        position: relative;
+        width: min(420px, 100%);
+        margin: 0 auto;
+        filter: drop-shadow(0 26px 60px rgba(0, 0, 0, 0.5));
+      }
+
+      .phone {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+
+      .float-badge {
+        position: absolute;
+        left: 10px;
+        bottom: -14px;
+        padding: 10px 12px;
+        border-radius: 14px;
+        background: rgba(7, 17, 38, 0.72);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: var(--shadow-soft);
+      }
+
+      .float-badge .pulse {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 0 0 rgba(51, 209, 122, 0.22);
+        animation: pulse 1.6s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0% {
+          box-shadow: 0 0 0 0 rgba(51, 209, 122, 0.22);
+        }
+        70% {
+          box-shadow: 0 0 0 14px rgba(51, 209, 122, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(51, 209, 122, 0);
+        }
+      }
+
+      /* Sections */
+      section {
+        padding: 44px 0;
+      }
+
+      .section-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 18px;
+      }
+
+      h2 {
+        font-family: Geologica, Inter, system-ui, sans-serif;
+        font-size: 24px;
+        margin: 0;
+        letter-spacing: -0.2px;
+      }
+
+      .sub {
+        margin: 8px 0 0;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .grid {
+        display: grid;
+        gap: 14px;
+      }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--stroke);
+        border-radius: var(--radius);
+        padding: 16px;
+        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.02);
+        transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
+      }
+
+      .card:hover {
+        transform: translateY(-3px);
+        background: rgba(255, 255, 255, 0.075);
+        border-color: rgba(255, 255, 255, 0.16);
+      }
+
+      .card .emoji {
+        font-size: 20px;
+        width: 38px;
+        height: 38px;
+        display: grid;
+        place-items: center;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 10px;
+      }
+
+      .card h3 {
+        margin: 0 0 8px;
+        font-family: Geologica, Inter, system-ui, sans-serif;
+        font-size: 16px;
+        letter-spacing: -0.1px;
+      }
+
+      .card p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.55;
+        font-size: 14px;
+      }
+
+      /* Steps */
+      .steps {
+        counter-reset: step;
+        display: grid;
+        gap: 14px;
+      }
+
+      .step {
+        display: grid;
+        grid-template-columns: 46px 1fr;
+        gap: 14px;
+        align-items: start;
+        padding: 16px;
+        border-radius: var(--radius);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.04));
+        border: 1px solid var(--stroke);
+        transition: transform 180ms ease, border-color 180ms ease;
+      }
+
+      .step:hover {
+        transform: translateY(-3px);
+        border-color: rgba(255, 255, 255, 0.18);
+      }
+
+      .step .num {
+        width: 46px;
+        height: 46px;
+        border-radius: 16px;
+        display: grid;
+        place-items: center;
+        background: rgba(51, 209, 122, 0.14);
+        border: 1px solid rgba(51, 209, 122, 0.22);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .step .num::before {
+        counter-increment: step;
+        content: counter(step);
+        font-family: Geologica, Inter, system-ui, sans-serif;
+        font-weight: 800;
+        color: rgba(255, 255, 255, 0.92);
+        font-size: 18px;
+      }
+
+      .step h3 {
+        margin: 2px 0 6px;
+        font-family: Geologica, Inter, system-ui, sans-serif;
+        font-size: 16px;
+      }
+
+      .step p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.55;
+        font-size: 14px;
+      }
+
+      .wiggle {
+        animation: wiggle 1.8s ease-in-out infinite;
+      }
+
+      @keyframes wiggle {
+        0%,
+        100% {
+          transform: rotate(0deg);
+        }
+        25% {
+          transform: rotate(-2deg);
+        }
+        50% {
+          transform: rotate(2deg);
+        }
+        75% {
+          transform: rotate(-1deg);
+        }
+      }
+
+      /* For who */
+      .who {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .who-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px;
+        border-radius: var(--radius);
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+      }
+
+      .who-item:hover {
+        transform: translateY(-2px);
+        border-color: rgba(255, 255, 255, 0.16);
+        background: rgba(255, 255, 255, 0.07);
+      }
+
+      .who-ico {
+        width: 42px;
+        height: 42px;
+        border-radius: 16px;
+        display: grid;
+        place-items: center;
+        background: rgba(59, 130, 246, 0.12);
+        border: 1px solid rgba(59, 130, 246, 0.22);
+        font-size: 18px;
+      }
+
+      .who-item b {
+        font-weight: 700;
+      }
+
+      .who-item span {
+        display: block;
+        margin-top: 2px;
+        color: var(--muted-2);
+        font-size: 13px;
+      }
+
+      /* Testimonials */
+      .testimonials {
+        display: grid;
+        gap: 14px;
+      }
+
+      .t-head {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .avatar {
+        width: 46px;
+        height: 46px;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.05);
+        overflow: hidden;
+        flex: 0 0 auto;
+      }
+
+      .t-name {
+        font-weight: 800;
+        font-family: Geologica, Inter, system-ui, sans-serif;
+        letter-spacing: -0.1px;
+      }
+
+      .t-role {
+        color: var(--muted-2);
+        font-size: 13px;
+        margin-top: 2px;
+      }
+
+      .quote {
+        color: var(--text);
+        line-height: 1.6;
+        margin: 0;
+      }
+
+      .quote b {
+        color: rgba(255, 255, 255, 0.96);
+      }
+
+      /* Pricing */
+      .pricing {
+        display: grid;
+        gap: 14px;
+      }
+
+      .price {
+        position: relative;
+        overflow: hidden;
+      }
+
+      .badge {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        padding: 8px 10px;
+        border-radius: 999px;
+        background: rgba(51, 209, 122, 0.14);
+        border: 1px solid rgba(51, 209, 122, 0.26);
+        color: rgba(255, 255, 255, 0.92);
+        font-weight: 700;
+        font-size: 12px;
+      }
+
+      .price h3 {
+        margin: 0 0 6px;
+        font-family: Geologica, Inter, system-ui, sans-serif;
+        font-size: 18px;
+      }
+
+      .amount {
+        font-family: Geologica, Inter, system-ui, sans-serif;
+        font-weight: 900;
+        font-size: 34px;
+        letter-spacing: -0.6px;
+        margin: 6px 0 4px;
+      }
+
+      .per {
+        font-size: 14px;
+        color: var(--muted);
+        margin: 0 0 10px;
+      }
+
+      .list {
+        margin: 12px 0 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 10px;
+      }
+
+      .list li {
+        display: flex;
+        gap: 10px;
+        align-items: start;
+        color: var(--muted);
+        line-height: 1.45;
+        font-size: 14px;
+      }
+
+      .check {
+        width: 18px;
+        height: 18px;
+        border-radius: 7px;
+        background: rgba(51, 209, 122, 0.14);
+        border: 1px solid rgba(51, 209, 122, 0.22);
+        display: grid;
+        place-items: center;
+        flex: 0 0 auto;
+        margin-top: 1px;
+      }
+
+      .price.reco {
+        background: linear-gradient(180deg, rgba(51, 209, 122, 0.12), rgba(255, 255, 255, 0.05));
+        border-color: rgba(51, 209, 122, 0.22);
+        box-shadow: 0 22px 60px rgba(34, 197, 94, 0.12);
+      }
+
+      .price .price-cta {
+        margin-top: 16px;
+        width: 100%;
+      }
+
+      .note {
+        margin-top: 14px;
+        color: var(--muted);
+        font-size: 14px;
+        text-align: center;
+      }
+
+      /* FAQ */
+      .faq {
+        display: grid;
+        gap: 12px;
+      }
+
+      details {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius);
+        padding: 14px 14px;
+        transition: border-color 180ms ease, background 180ms ease;
+      }
+
+      details[open] {
+        border-color: rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.07);
+      }
+
+      summary {
+        list-style: none;
+        cursor: pointer;
+        font-weight: 800;
+        font-family: Geologica, Inter, system-ui, sans-serif;
+        letter-spacing: -0.1px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .chev {
+        width: 34px;
+        height: 34px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.05);
+        display: grid;
+        place-items: center;
+        transition: transform 180ms ease;
+        flex: 0 0 auto;
+      }
+
+      details[open] .chev {
+        transform: rotate(180deg);
+      }
+
+      details p {
+        margin: 10px 0 0;
+        color: var(--muted);
+        line-height: 1.6;
+        font-size: 14px;
+      }
+
+      /* Final CTA */
+      .final {
+        padding: 50px 0 62px;
+      }
+
+      .cta-box {
+        border-radius: 26px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background:
+          radial-gradient(900px 420px at 20% 30%, rgba(51, 209, 122, 0.18), transparent 55%),
+          radial-gradient(700px 420px at 110% 0%, rgba(59, 130, 246, 0.18), transparent 55%),
+          rgba(255, 255, 255, 0.05);
+        padding: 22px;
+        box-shadow: var(--shadow);
+      }
+
+      .cta-row {
+        display: grid;
+        gap: 16px;
+        align-items: center;
+      }
+
+      .cta-row h2 {
+        font-size: 24px;
+        margin: 0;
+      }
+
+      .cta-row p {
+        margin: 10px 0 0;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .tg {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .tg svg {
+        width: 18px;
+        height: 18px;
+      }
+
+      /* Reveal on scroll */
+      .reveal {
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 520ms ease, transform 520ms ease;
+      }
+
+      .reveal.in-view {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* Footer */
+      footer {
+        padding: 26px 0 40px;
+        color: var(--muted-2);
+        font-size: 13px;
+      }
+
+      .footer-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding-top: 18px;
+      }
+
+      /* Desktop */
+      @media (min-width: 860px) {
+        .nav-links {
+          display: flex;
+        }
+
+        .hero {
+          padding: 66px 0 28px;
+        }
+
+        .hero-grid {
+          grid-template-columns: 1.05fr 0.95fr;
+          gap: 32px;
+        }
+
+        .trust {
+          grid-template-columns: repeat(3, 1fr);
+        }
+
+        .grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+
+        .steps {
+          grid-template-columns: repeat(3, 1fr);
+        }
+
+        .step {
+          grid-template-columns: 1fr;
+          text-align: left;
+        }
+
+        .step .num {
+          margin-bottom: 10px;
+        }
+
+        .who {
+          grid-template-columns: repeat(3, 1fr);
+        }
+
+        .testimonials {
+          grid-template-columns: repeat(3, 1fr);
+        }
+
+        .pricing {
+          grid-template-columns: repeat(2, 1fr);
+          align-items: stretch;
+        }
+
+        .cta-row {
+          grid-template-columns: 1.25fr 0.75fr;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation: none !important;
+          transition: none !important;
+          scroll-behavior: auto !important;
+        }
+        .reveal {
+          opacity: 1 !important;
+          transform: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip" href="#main">Перейти до контенту</a>
+
+    <header class="header" id="top">
+      <div class="container">
+        <div class="nav">
+          <a class="brand" href="#top" aria-label="Черга — на початок">
+            <span class="logo" aria-hidden="true"></span>
+            <span class="brand-name">Черга</span>
+          </a>
+
+          <nav class="nav-links" aria-label="Навігація">
+            <a href="#problem">Знайомо?</a>
+            <a href="#how">Як працює</a>
+            <a href="#who">Для кого</a>
+            <a href="#pricing">Ціни</a>
+            <a href="#faq">FAQ</a>
+          </nav>
+
+          <div class="actions">
+            <a class="btn btn-primary" href="https://t.me/chergaa_bot" target="_blank" rel="noreferrer">
+              <span class="spark" aria-hidden="true"></span>
+              Спробувати безкоштовно
+            </a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero">
+        <div class="container">
+          <div class="hero-grid">
+            <div class="reveal">
+              <div class="kicker">
+                <span class="dot" aria-hidden="true"></span>
+                <span><b>Telegram</b> CRM-бот для записів та нагадувань</span>
+              </div>
+
+              <h1>Клієнти більше не забувають про запис</h1>
+              <p class="lead">
+                Записуєш клієнта в боті за 30 секунд — і він сам надсилає нагадування в Telegram
+                <b>за 2 години до прийому</b>. Без додатків, без реєстрацій, без «розберись у CRM».
+              </p>
+
+              <div class="hero-cta">
+                <a class="btn btn-primary" href="https://t.me/chergaa_bot" target="_blank" rel="noreferrer">
+                  <span class="spark" aria-hidden="true"></span>
+                  Спробувати безкоштовно
+                </a>
+                <a class="btn" href="#how">Подивитись як працює</a>
+              </div>
+
+              <div class="fineprint">
+                Безкоштовно <span class="sep">•</span> Без реєстрації <span class="sep">•</span> Працює в Telegram
+              </div>
+
+              <div class="trust">
+                <div class="pill reveal">
+                  <div class="icon" aria-hidden="true">⏱️</div>
+                  <div>
+                    <b>Перший запис — за 2 хвилини</b>
+                    <span>встановлення не потрібно</span>
+                  </div>
+                </div>
+                <div class="pill reveal">
+                  <div class="icon" aria-hidden="true">🔔</div>
+                  <div>
+                    <b>Нагадування автоматично</b>
+                    <span>за 2 години до візиту</span>
+                  </div>
+                </div>
+                <div class="pill reveal">
+                  <div class="icon" aria-hidden="true">🧾</div>
+                  <div>
+                    <b>Записи не губляться</b>
+                    <span>не блокнот і не Excel</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="phone-wrap reveal" aria-label="Мокап телефону зі скріншотом бота">
+              <svg class="phone" viewBox="0 0 420 860" fill="none" xmlns="http://www.w3.org/2000/svg" role="img">
+                <defs>
+                  <linearGradient id="gFrame" x1="90" y1="40" x2="350" y2="820" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="rgba(255,255,255,0.24)" />
+                    <stop offset="1" stop-color="rgba(255,255,255,0.08)" />
+                  </linearGradient>
+                  <linearGradient id="gScreen" x1="70" y1="110" x2="360" y2="770" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#0B1736" />
+                    <stop offset="1" stop-color="#071126" />
+                  </linearGradient>
+                  <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="rgba(0,0,0,0.45)" />
+                  </filter>
+                </defs>
+
+                <!-- Frame -->
+                <rect x="58" y="26" width="304" height="808" rx="44" fill="rgba(255,255,255,0.04)" />
+                <rect x="58" y="26" width="304" height="808" rx="44" stroke="url(#gFrame)" stroke-width="1.2" />
+                <rect x="74" y="46" width="272" height="768" rx="38" fill="url(#gScreen)" filter="url(#shadow)" />
+
+                <!-- Speaker -->
+                <rect x="178" y="58" width="62" height="10" rx="5" fill="rgba(255,255,255,0.12)" />
+                <circle cx="258" cy="63" r="4" fill="rgba(255,255,255,0.18)" />
+
+                <!-- Top bar -->
+                <text x="92" y="96" fill="rgba(255,255,255,0.62)" font-size="12" font-family="Inter">
+                  09:41
+                </text>
+                <text x="290" y="96" fill="rgba(255,255,255,0.46)" font-size="12" font-family="Inter">
+                  LTE
+                </text>
+                <rect x="318" y="86" width="22" height="10" rx="3" fill="rgba(255,255,255,0.12)" />
+
+                <!-- Header -->
+                <rect x="88" y="116" width="244" height="54" rx="18" fill="rgba(255,255,255,0.06)" />
+                <circle cx="112" cy="143" r="14" fill="rgba(51,209,122,0.18)" />
+                <path
+                  d="M106 143c0-3 2.6-5.4 6.1-5.4h1.4c3.5 0 6.1 2.4 6.1 5.4 0 3-2.6 5.4-6.1 5.4h-1.4c-3.5 0-6.1-2.4-6.1-5.4Z"
+                  fill="rgba(255,255,255,0.82)"
+                />
+                <text x="134" y="142" fill="rgba(255,255,255,0.92)" font-size="14" font-family="Geologica" font-weight="700">
+                  Черга • Бот
+                </text>
+                <text x="134" y="160" fill="rgba(255,255,255,0.58)" font-size="12" font-family="Inter">
+                  Запис + нагадування
+                </text>
+
+                <!-- Chat bubbles -->
+                <g>
+                  <rect x="88" y="190" width="220" height="64" rx="18" fill="rgba(255,255,255,0.06)" />
+                  <text x="104" y="214" fill="rgba(255,255,255,0.82)" font-size="12" font-family="Inter">
+                    Додай запис на сьогодні?
+                  </text>
+                  <text x="104" y="234" fill="rgba(255,255,255,0.62)" font-size="12" font-family="Inter">
+                    Обери час і клієнта 👇
+                  </text>
+                </g>
+
+                <g>
+                  <rect x="130" y="270" width="202" height="72" rx="18" fill="rgba(51,209,122,0.16)" stroke="rgba(51,209,122,0.24)" />
+                  <text x="146" y="294" fill="rgba(255,255,255,0.9)" font-size="12" font-family="Inter">
+                    Оля • манікюр
+                  </text>
+                  <text x="146" y="316" fill="rgba(255,255,255,0.72)" font-size="12" font-family="Inter">
+                    18:30, Пн • нагадати
+                  </text>
+                  <text x="146" y="338" fill="rgba(255,255,255,0.62)" font-size="12" font-family="Inter">
+                    за 2 години ✅
+                  </text>
+                </g>
+
+                <g>
+                  <rect x="88" y="360" width="238" height="94" rx="18" fill="rgba(255,255,255,0.06)" />
+                  <text x="104" y="386" fill="rgba(255,255,255,0.82)" font-size="12" font-family="Inter">
+                    Посилання для клієнта:
+                  </text>
+                  <rect x="104" y="398" width="198" height="26" rx="12" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.12)" />
+                  <text x="114" y="416" fill="rgba(255,255,255,0.6)" font-size="12" font-family="Inter">
+                    t.me/chergaa_bot?start=...
+                  </text>
+                  <text x="104" y="446" fill="rgba(255,255,255,0.58)" font-size="12" font-family="Inter">
+                    Клієнт відкриє — і все.
+                  </text>
+                </g>
+
+                <g class="wiggle">
+                  <rect x="118" y="484" width="214" height="126" rx="22" fill="rgba(59,130,246,0.12)" stroke="rgba(59,130,246,0.22)" />
+                  <text x="138" y="512" fill="rgba(255,255,255,0.92)" font-size="12" font-family="Inter" font-weight="600">
+                    🔔 Нагадування
+                  </text>
+                  <text x="138" y="536" fill="rgba(255,255,255,0.72)" font-size="12" font-family="Inter">
+                    Привіт! Твій запис
+                  </text>
+                  <text x="138" y="558" fill="rgba(255,255,255,0.72)" font-size="12" font-family="Inter">
+                    сьогодні о 18:30.
+                  </text>
+                  <text x="138" y="580" fill="rgba(255,255,255,0.62)" font-size="12" font-family="Inter">
+                    Підтвердити?
+                  </text>
+                  <rect x="138" y="592" width="86" height="26" rx="12" fill="rgba(51,209,122,0.18)" />
+                  <text x="154" y="610" fill="rgba(255,255,255,0.86)" font-size="12" font-family="Inter">
+                    Так ✅
+                  </text>
+                  <rect x="230" y="592" width="86" height="26" rx="12" fill="rgba(255,255,255,0.06)" />
+                  <text x="246" y="610" fill="rgba(255,255,255,0.72)" font-size="12" font-family="Inter">
+                    Ні ❌
+                  </text>
+                </g>
+
+                <!-- Bottom bar -->
+                <rect x="154" y="782" width="112" height="6" rx="3" fill="rgba(255,255,255,0.14)" />
+              </svg>
+
+              <div class="float-badge" aria-hidden="true">
+                <span class="pulse"></span>
+                <span style="color: rgba(255, 255, 255, 0.9); font-weight: 700">Нагадування відправлено</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="problem">
+        <div class="container">
+          <div class="section-head reveal">
+            <div>
+              <h2>Знайомо?</h2>
+              <p class="sub">Ті самі дрібниці, які з’їдають нерви та гроші — щотижня.</p>
+            </div>
+          </div>
+
+          <div class="grid">
+            <article class="card reveal">
+              <div class="emoji" aria-hidden="true">😬</div>
+              <h3>Клієнт не прийшов і не попередив</h3>
+              <p>Ти виділив час, відмовив іншим — а візит «зник».</p>
+            </article>
+            <article class="card reveal">
+              <div class="emoji" aria-hidden="true">📞</div>
+              <h3>Знову дзвониш і нагадуєш вручну</h3>
+              <p>Поки інші працюють — ти нагадуєш і пишеш «а ви точно будете?»</p>
+            </article>
+            <article class="card reveal">
+              <div class="emoji" aria-hidden="true">📒</div>
+              <h3>Записник загубився</h3>
+              <p>Блокнот/Excel не пробачають помилок: дати, час, телефон — усе легко переплутати.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="how">
+        <div class="container">
+          <div class="section-head reveal">
+            <div>
+              <h2>Як це працює</h2>
+              <p class="sub">Три кроки. Без «навчання персоналу» та довгих налаштувань.</p>
+            </div>
+          </div>
+
+          <div class="steps">
+            <div class="step reveal">
+              <div class="num" aria-hidden="true"></div>
+              <div>
+                <h3>Записуєш клієнта в боті (30 секунд)</h3>
+                <p>Ім’я, час, послуга — і все збереглось. Як чат, а не як таблиця.</p>
+              </div>
+            </div>
+            <div class="step reveal">
+              <div class="num" aria-hidden="true"></div>
+              <div>
+                <h3>Надсилаєш посилання клієнту в Telegram</h3>
+                <p>Одне повідомлення — клієнт переходить, підтверджує запис.</p>
+              </div>
+            </div>
+            <div class="step reveal">
+              <div class="num" aria-hidden="true"></div>
+              <div>
+                <h3>Бот сам нагадує клієнту за 2 години</h3>
+                <p>Ніяких дзвінків. Ніяких «ой, я забула». Ти просто працюєш.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="who">
+        <div class="container">
+          <div class="section-head reveal">
+            <div>
+              <h2>Для кого</h2>
+              <p class="sub">Якщо у вас є клієнти — Черга для вас.</p>
+            </div>
+          </div>
+
+          <div class="who">
+            <div class="who-item reveal">
+              <div class="who-ico" aria-hidden="true">💅</div>
+              <div>
+                <b>Майстер манікюру</b>
+                <span>щоб не «вилітали» візити</span>
+              </div>
+            </div>
+            <div class="who-item reveal">
+              <div class="who-ico" aria-hidden="true">💇</div>
+              <div>
+                <b>Перукар</b>
+                <span>коли записи йдуть щодня</span>
+              </div>
+            </div>
+            <div class="who-item reveal">
+              <div class="who-ico" aria-hidden="true">🧴</div>
+              <div>
+                <b>Косметолог</b>
+                <span>нагадування — must have</span>
+              </div>
+            </div>
+            <div class="who-item reveal">
+              <div class="who-ico" aria-hidden="true">📚</div>
+              <div>
+                <b>Репетитор</b>
+                <span>вчасні заняття без хаосу</span>
+              </div>
+            </div>
+            <div class="who-item reveal">
+              <div class="who-ico" aria-hidden="true">🩺</div>
+              <div>
+                <b>Лікар</b>
+                <span>акуратно і по-людськи</span>
+              </div>
+            </div>
+            <div class="who-item reveal">
+              <div class="who-ico" aria-hidden="true">📷</div>
+              <div>
+                <b>Фотограф</b>
+                <span>зйомки без «пропав»</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="reviews">
+        <div class="container">
+          <div class="section-head reveal">
+            <div>
+              <h2>Відгуки</h2>
+              <p class="sub">Без пафосу. Просто те, що реально змінюється в роботі.</p>
+            </div>
+          </div>
+
+          <div class="testimonials">
+            <article class="card reveal">
+              <div class="t-head">
+                <svg class="avatar" viewBox="0 0 46 46" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Аватар">
+                  <defs>
+                    <linearGradient id="a1" x1="0" y1="0" x2="46" y2="46">
+                      <stop stop-color="rgba(51,209,122,0.35)" />
+                      <stop offset="1" stop-color="rgba(59,130,246,0.25)" />
+                    </linearGradient>
+                  </defs>
+                  <rect x="0.8" y="0.8" width="44.4" height="44.4" rx="18" fill="url(#a1)" stroke="rgba(255,255,255,0.16)" />
+                  <circle cx="23" cy="20" r="8" fill="rgba(255,255,255,0.75)" />
+                  <rect x="12" y="30" width="22" height="10" rx="5" fill="rgba(255,255,255,0.55)" />
+                </svg>
+                <div>
+                  <div class="t-name">Ірина</div>
+                  <div class="t-role">майстер манікюру, Львів</div>
+                </div>
+              </div>
+              <p class="quote">
+                Раніше <b>3–4 клієнти на тиждень</b> могли не прийти без попередження. З «Чергою» майже нуль —
+                нагадування в Telegram робить свою справу. І я перестала писати все в блокнот.
+              </p>
+            </article>
+
+            <article class="card reveal">
+              <div class="t-head">
+                <svg class="avatar" viewBox="0 0 46 46" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Аватар">
+                  <defs>
+                    <linearGradient id="a2" x1="0" y1="46" x2="46" y2="0">
+                      <stop stop-color="rgba(59,130,246,0.32)" />
+                      <stop offset="1" stop-color="rgba(51,209,122,0.22)" />
+                    </linearGradient>
+                  </defs>
+                  <rect x="0.8" y="0.8" width="44.4" height="44.4" rx="18" fill="url(#a2)" stroke="rgba(255,255,255,0.16)" />
+                  <path d="M14 26c0-6 4-10 9-10s9 4 9 10" stroke="rgba(255,255,255,0.7)" stroke-width="5" stroke-linecap="round" />
+                  <circle cx="18" cy="18" r="3" fill="rgba(255,255,255,0.75)" />
+                  <circle cx="28" cy="18" r="3" fill="rgba(255,255,255,0.75)" />
+                </svg>
+                <div>
+                  <div class="t-name">Денис</div>
+                  <div class="t-role">репетитор з англійської, Київ</div>
+                </div>
+              </div>
+              <p class="quote">
+                Мені важливо, щоб не було «ой, я забув». Тепер я просто кидаю посилання — і все.
+                За місяць <b>зірваних занять стало в рази менше</b>.
+              </p>
+            </article>
+
+            <article class="card reveal">
+              <div class="t-head">
+                <svg class="avatar" viewBox="0 0 46 46" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Аватар">
+                  <defs>
+                    <linearGradient id="a3" x1="0" y1="0" x2="46" y2="46">
+                      <stop stop-color="rgba(255,255,255,0.18)" />
+                      <stop offset="1" stop-color="rgba(51,209,122,0.24)" />
+                    </linearGradient>
+                  </defs>
+                  <rect x="0.8" y="0.8" width="44.4" height="44.4" rx="18" fill="url(#a3)" stroke="rgba(255,255,255,0.16)" />
+                  <path d="M15 32c2-5 5-8 8-8s6 3 8 8" stroke="rgba(255,255,255,0.7)" stroke-width="4" stroke-linecap="round" />
+                  <circle cx="23" cy="18" r="8" fill="rgba(255,255,255,0.68)" />
+                </svg>
+                <div>
+                  <div class="t-name">Олена</div>
+                  <div class="t-role">косметолог, Дніпро</div>
+                </div>
+              </div>
+              <p class="quote">
+                Я боялась «чергової CRM», але тут це просто Telegram. Запис займає хвилину.
+                Найприємніше — <b>не треба нагадувати вручну</b>, бот робить це за мене.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="pricing">
+        <div class="container">
+          <div class="section-head reveal">
+            <div>
+              <h2>Ціни</h2>
+              <p class="sub">Почніть безкоштовно. Pro — коли відчуєте, що «це моє».</p>
+            </div>
+          </div>
+
+          <div class="pricing">
+            <article class="card price reveal">
+              <h3>Безкоштовно</h3>
+              <div class="amount">0 грн</div>
+              <div class="per">до 20 клієнтів на місяць</div>
+              <ul class="list">
+                <li><span class="check" aria-hidden="true">✓</span> Записи в Telegram</li>
+                <li><span class="check" aria-hidden="true">✓</span> Автонагадування за 2 години</li>
+                <li><span class="check" aria-hidden="true">✓</span> Шаблони повідомлень</li>
+              </ul>
+              <a class="btn price-cta" href="https://t.me/chergaa_bot" target="_blank" rel="noreferrer">Почати</a>
+            </article>
+
+            <article class="card price reco reveal">
+              <div class="badge">Рекомендовано</div>
+              <h3>Pro</h3>
+              <div class="amount">299 грн</div>
+              <div class="per">на місяць • необмежено</div>
+              <ul class="list">
+                <li><span class="check" aria-hidden="true">✓</span> Необмежено клієнтів і записів</li>
+                <li><span class="check" aria-hidden="true">✓</span> Статистика: відвідування / пропуски</li>
+                <li><span class="check" aria-hidden="true">✓</span> Розсилка: акції, вікна, повторні візити</li>
+              </ul>
+              <a class="btn btn-primary price-cta" href="https://t.me/chergaa_bot" target="_blank" rel="noreferrer">
+                <span class="spark" aria-hidden="true"></span>
+                Взяти Pro (1-й місяць безкоштовно)
+              </a>
+            </article>
+          </div>
+
+          <div class="note reveal">Перший місяць Pro — безкоштовно. Скасовується в один клік.</div>
+        </div>
+      </section>
+
+      <section id="faq">
+        <div class="container">
+          <div class="section-head reveal">
+            <div>
+              <h2>FAQ</h2>
+              <p class="sub">Коротко — як ми любимо.</p>
+            </div>
+          </div>
+
+          <div class="faq">
+            <details class="reveal">
+              <summary>
+                Чи потрібен Telegram клієнту?
+                <span class="chev" aria-hidden="true">⌄</span>
+              </summary>
+              <p>
+                Так, щоб отримувати нагадування. Для більшості клієнтів це ок — Telegram в Україні є майже у всіх.
+                Якщо у конкретного клієнта немає Telegram, можна нагадати вручну або записати його як виняток.
+              </p>
+            </details>
+
+            <details class="reveal">
+              <summary>
+                Чи складно налаштувати?
+                <span class="chev" aria-hidden="true">⌄</span>
+              </summary>
+              <p>
+                Ні. Ви просто відкриваєте бота, додаєте перший запис і кидаєте клієнту посилання.
+                Ніяких кабінетів, логінів чи інтеграцій.
+              </p>
+            </details>
+
+            <details class="reveal">
+              <summary>
+                Що якщо клієнт не користується Telegram?
+                <span class="chev" aria-hidden="true">⌄</span>
+              </summary>
+              <p>
+                Тоді він не отримає автоматичне нагадування в Telegram. На практиці це рідко — але якщо є такі клієнти,
+                ви можете залишати їх як «без нагадування» або нагадувати вручну, а решту автоматизувати.
+              </p>
+            </details>
+
+            <details class="reveal">
+              <summary>
+                Чи безпечні дані клієнтів?
+                <span class="chev" aria-hidden="true">⌄</span>
+              </summary>
+              <p>
+                Ми зберігаємо лише те, що потрібно для запису та нагадування (ім’я, час, контакт у Telegram).
+                Доступ до ваших записів маєте лише ви. Якщо потрібно — можемо підписати договір для бізнесу.
+              </p>
+            </details>
+
+            <details class="reveal">
+              <summary>
+                Як скасувати підписку?
+                <span class="chev" aria-hidden="true">⌄</span>
+              </summary>
+              <p>
+                У Pro є проста команда «Скасувати підписку» в боті. Ви скасовуєте — і з наступного періоду оплата не списується.
+                Без дзвінків і «напишіть нам у підтримку».
+              </p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <section class="final" id="start">
+        <div class="container">
+          <div class="cta-box reveal">
+            <div class="cta-row">
+              <div>
+                <h2>Почніть сьогодні — перший запис за 2 хвилини</h2>
+                <p>
+                  Відкрийте бота, додайте клієнта і забудьте про дзвінки-нагадування.
+                  Черга підстрахує за вас.
+                </p>
+              </div>
+              <div style="display: grid; gap: 12px; justify-items: start">
+                <a class="btn btn-primary" href="https://t.me/chergaa_bot" target="_blank" rel="noreferrer">
+                  <span class="spark" aria-hidden="true"></span>
+                  <span class="tg">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                      <path
+                        d="M21.8 5.6c.4-1.8-1.2-2.6-2.4-2.1L3.4 9.5c-1.1.4-1.1 1.9.1 2.2l4.1 1.2 1.6 4.9c.3 1.1 1.7 1.3 2.3.4l2.2-3.1 4.3 3.2c.9.7 2.2.2 2.4-.9l2.4-12.8Z"
+                        fill="rgba(255,255,255,0.92)"
+                      />
+                      <path
+                        d="M8 12.7 18.9 6.8c.2-.1.4.1.2.3l-9 8.5"
+                        stroke="rgba(7,17,38,0.55)"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                      />
+                    </svg>
+                    Відкрити в Telegram
+                  </span>
+                </a>
+                <div class="fineprint">Безкоштовно • Без реєстрації • Працює в Telegram</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">
+        <div class="footer-row">
+          <div>© <span id="year"></span> Черга</div>
+          <div>
+            Питання? Напишіть нам у Telegram:
+            <a href="https://t.me/chergaa_bot" target="_blank" rel="noreferrer" style="color: rgba(255, 255, 255, 0.86)">
+              @chergaa_bot
+            </a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      (function () {
+        const prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const yearEl = document.getElementById("year");
+        if (yearEl) yearEl.textContent = String(new Date().getFullYear());
+
+        const header = document.querySelector(".header");
+        const onScroll = () => {
+          if (!header) return;
+          header.classList.toggle("is-scrolled", window.scrollY > 8);
+        };
+        onScroll();
+        window.addEventListener("scroll", onScroll, { passive: true });
+
+        document.addEventListener("click", (e) => {
+          const a = e.target.closest && e.target.closest('a[href^="#"]');
+          if (!a) return;
+          const hash = a.getAttribute("href");
+          if (!hash || hash.length < 2) return;
+          const target = document.querySelector(hash);
+          if (!target) return;
+          e.preventDefault();
+          target.scrollIntoView({ behavior: prefersReduced ? "auto" : "smooth", block: "start" });
+        });
+
+        if (prefersReduced) {
+          document.querySelectorAll(".reveal").forEach((el) => el.classList.add("in-view"));
+          return;
+        }
+
+        const revealEls = Array.from(document.querySelectorAll(".reveal"));
+        const io = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (entry.isIntersecting) {
+                entry.target.classList.add("in-view");
+                io.unobserve(entry.target);
+              }
+            }
+          },
+          { threshold: 0.12, rootMargin: "40px 0px -60px 0px" }
+        );
+        revealEls.forEach((el) => io.observe(el));
+      })();
+    </script>
+  </body>
+</html>
+
