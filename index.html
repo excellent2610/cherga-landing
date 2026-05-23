@@ -15,7 +15,26 @@
       name="description"
       content="Черга — Telegram CRM-бот для малого бізнесу в Україні: записи клієнтів за 30 секунд і автоматичні нагадування за 2 години до прийому."
     />
+    <meta name="robots" content="index, follow" />
     <title>Черга — Telegram CRM-бот для записів і нагадувань</title>
+    <link rel="canonical" href="https://example.com/" />
+
+    <!-- Open Graph / Twitter -->
+    <meta property="og:locale" content="uk_UA" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Черга" />
+    <meta property="og:title" content="Черга — Telegram CRM-бот для записів і нагадувань" />
+    <meta
+      property="og:description"
+      content="Черга — Telegram CRM-бот для малого бізнесу в Україні: записи клієнтів за 30 секунд і автоматичні нагадування за 2 години до прийому."
+    />
+    <meta property="og:url" content="https://example.com/" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Черга — Telegram CRM-бот для записів і нагадувань" />
+    <meta
+      name="twitter:description"
+      content="Черга — Telegram CRM-бот для малого бізнесу в Україні: записи клієнтів за 30 секунд і автоматичні нагадування за 2 години до прийому."
+    />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -939,7 +958,7 @@
           </nav>
 
           <div class="actions">
-            <a class="btn btn-primary" href="https://t.me/chergaa_bot" target="_blank" rel="noreferrer">
+            <a class="btn btn-primary" href="https://t.me/chergaa_bot" target="_blank" rel="noopener noreferrer">
               <span class="spark" aria-hidden="true"></span>
               Спробувати безкоштовно
             </a>
@@ -965,7 +984,7 @@
               </p>
 
               <div class="hero-cta">
-                <a class="btn btn-primary" href="https://t.me/chergaa_bot" target="_blank" rel="noreferrer">
+                <a class="btn btn-primary" href="https://t.me/chergaa_bot" target="_blank" rel="noopener noreferrer">
                   <span class="spark" aria-hidden="true"></span>
                   Спробувати безкоштовно
                 </a>
@@ -1349,7 +1368,7 @@
                 <li><span class="check" aria-hidden="true">✓</span> Автонагадування за 2 години</li>
                 <li><span class="check" aria-hidden="true">✓</span> Шаблони повідомлень</li>
               </ul>
-              <a class="btn price-cta" href="https://t.me/chergaa_bot" target="_blank" rel="noreferrer">Почати</a>
+              <a class="btn price-cta" href="https://t.me/chergaa_bot" target="_blank" rel="noopener noreferrer">Почати</a>
             </article>
 
             <article class="card price reco reveal">
@@ -1362,7 +1381,7 @@
                 <li><span class="check" aria-hidden="true">✓</span> Статистика: відвідування / пропуски</li>
                 <li><span class="check" aria-hidden="true">✓</span> Розсилка: акції, вікна, повторні візити</li>
               </ul>
-              <a class="btn btn-primary price-cta" href="https://t.me/chergaa_bot" target="_blank" rel="noreferrer">
+              <a class="btn btn-primary price-cta" href="https://t.me/chergaa_bot" target="_blank" rel="noopener noreferrer">
                 <span class="spark" aria-hidden="true"></span>
                 Взяти Pro (1-й місяць безкоштовно)
               </a>
@@ -1453,7 +1472,7 @@
                 </p>
               </div>
               <div style="display: grid; gap: 12px; justify-items: start">
-                <a class="btn btn-primary" href="https://t.me/chergaa_bot" target="_blank" rel="noreferrer">
+                <a class="btn btn-primary" href="https://t.me/chergaa_bot" target="_blank" rel="noopener noreferrer">
                   <span class="spark" aria-hidden="true"></span>
                   <span class="tg">
                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -1485,7 +1504,7 @@
           <div>© <span id="year"></span> Черга</div>
           <div>
             Питання? Напишіть нам у Telegram:
-            <a href="https://t.me/chergaa_bot" target="_blank" rel="noreferrer" style="color: rgba(255, 255, 255, 0.86)">
+            <a href="https://t.me/chergaa_bot" target="_blank" rel="noopener noreferrer" style="color: rgba(255, 255, 255, 0.86)">
               @chergaa_bot
             </a>
           </div>
@@ -1495,9 +1514,19 @@
 
     <script>
       (function () {
+        const BOT_URL = "https://t.me/chergaa_bot";
         const prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         const yearEl = document.getElementById("year");
         if (yearEl) yearEl.textContent = String(new Date().getFullYear());
+
+        document.querySelectorAll('a[href="https://t.me/chergaa_bot"]').forEach((a) => a.setAttribute("href", BOT_URL));
+        document.querySelectorAll('a[target="_blank"]').forEach((a) => {
+          const rel = (a.getAttribute("rel") || "").trim();
+          const next = new Set(rel ? rel.split(/\s+/) : []);
+          next.add("noopener");
+          next.add("noreferrer");
+          a.setAttribute("rel", Array.from(next).join(" "));
+        });
 
         const header = document.querySelector(".header");
         const onScroll = () => {
